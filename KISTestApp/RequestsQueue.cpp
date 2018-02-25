@@ -14,19 +14,6 @@ RequestsQueue::RequestsQueue(size_t maxSize)
 }
 
 //----------------------------------------------------------------------------//
-RequestsQueue::~RequestsQueue()
-{
-    while (!m_queue.empty())
-    {
-        if (Request* request = m_queue.front())
-        {
-            DeleteRequest(request);
-        }
-        m_queue.pop();
-    }
-}
-
-//----------------------------------------------------------------------------//
 bool RequestsQueue::push(Stopper stopSignal, Request* request)
 {
     const std::array<HANDLE, 2> handles{ stopSignal.GetHandle(), m_mutex_not_full.GetHandle() };
@@ -100,6 +87,19 @@ Request* RequestsQueue::pop(Stopper stopSignal)
     }
 
     return result;
+}
+
+//----------------------------------------------------------------------------//
+void RequestsQueue::processAndEraseThreadUnsafe(const std::function<void(Request*)>& fnc)
+{
+    while (!m_queue.empty())
+    {
+        if (Request* request = m_queue.front())
+        {
+            fnc(request);
+        }
+        m_queue.pop();
+    }
 }
 
 //----------------------------------------------------------------------------//

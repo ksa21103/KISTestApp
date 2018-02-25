@@ -49,7 +49,7 @@ int main()
     const size_t    kMaxQueueLength = 1024;
 
     // Очередь сообщений
-    std::unique_ptr<RequestsQueue> requestsQueue = std::make_unique<RequestsQueue>(kMaxQueueLength);
+    RequestsQueue requestsQueue(kMaxQueueLength);
 
     // Определим количество ядер
     const size_t kHardwareThreadsCount = std::thread::hardware_concurrency();
@@ -64,11 +64,11 @@ int main()
     threads.reserve(kThreadsCount * 2);
     for (size_t index = 0; index < kThreadsCount; ++index)
     {
-        threads.push_back(std::thread([&]() { GetAndPushRequest(stopper, requestsQueue.get()); }));
+        threads.push_back(std::thread([&]() { GetAndPushRequest(stopper, &requestsQueue); }));
     }
     for (size_t index = 0; index < kThreadsCount; ++index)
     {
-        threads.push_back(std::thread([&]() { PopAndProcessRequest(stopper, requestsQueue.get()); }));
+        threads.push_back(std::thread([&]() { PopAndProcessRequest(stopper, &requestsQueue); }));
     }
 
     // 3) Поработать в течение 30 секунд.
@@ -77,7 +77,7 @@ int main()
 
     // 4) Корректно остановить все потоки. Если остались необработанные задания, не обрабатывать их и корректно удалить.
     std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
-    requestsQueue.reset();
+    requestsQueue.processAndEraseThreadUnsafe([](Request* request) { DeleteRequest(request); });
 
     // 5) Завершить программу.
     return 0;
