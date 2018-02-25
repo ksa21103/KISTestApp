@@ -1,4 +1,7 @@
-#include "stdafx.h"
+п»ї#include "stdafx.h"
+
+#include <iostream>
+#include <thread>
 
 #include "RequestOperations.h"
 
@@ -24,22 +27,22 @@ Request* GetRequest(Stopper stopSignal)
 }
 
 //----------------------------------------------------------------------------//
-// обрабатывает запрос, но память не удаляет, завершает обработку досрочно, если
-// объект stopSignal указывает на необходимость остановки
+// РѕР±СЂР°Р±Р°С‚С‹РІР°РµС‚ Р·Р°РїСЂРѕСЃ, РЅРѕ РїР°РјСЏС‚СЊ РЅРµ СѓРґР°Р»СЏРµС‚, Р·Р°РІРµСЂС€Р°РµС‚ РѕР±СЂР°Р±РѕС‚РєСѓ РґРѕСЃСЂРѕС‡РЅРѕ, РµСЃР»Рё
+// РѕР±СЉРµРєС‚ stopSignal СѓРєР°Р·С‹РІР°РµС‚ РЅР° РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚СЊ РѕСЃС‚Р°РЅРѕРІРєРё
 void ProcessRequest(Request* request, Stopper stopSignal)
 {
     if (!stopSignal.GetStopState())
     {
-        // Собственно обработка запроса
+        // РЎРѕР±СЃС‚РІРµРЅРЅРѕ РѕР±СЂР°Р±РѕС‚РєР° Р·Р°РїСЂРѕСЃР°
         std::cout << "Process request: ID = " << request->ID() << ", thread = " << std::this_thread::get_id() << ";\n";
     }
 
-    // Удаление запроса
+    // РЈРґР°Р»РµРЅРёРµ Р·Р°РїСЂРѕСЃР°
     DeleteRequest(request);
 }
 
 //----------------------------------------------------------------------------//
-// Удаление запроса
+// РЈРґР°Р»РµРЅРёРµ Р·Р°РїСЂРѕСЃР°
 void DeleteRequest(Request* request)
 {
     std::cout << "Delete request: ID = " << request->ID() << ", ptr = 0x" << request << ", thread = " << std::this_thread::get_id() << ";\n";
