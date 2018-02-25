@@ -150,6 +150,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Request.h" />
+    <ClInclude Include="RequestOperations.h" />
     <ClInclude Include="RequestsQueue.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Stopper.h" />
@@ -159,6 +160,7 @@
   <ItemGroup>
     <ClCompile Include="KISTestApp.cpp" />
     <ClCompile Include="Request.cpp" />
+    <ClCompile Include="RequestOperations.cpp" />
     <ClCompile Include="RequestsQueue.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

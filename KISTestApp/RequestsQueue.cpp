@@ -2,9 +2,8 @@
 
 #include <array>
 
+#include "RequestOperations.h"
 #include "RequestsQueue.h"
-
-void DeleteRequest(Request* request);
 
 //----------------------------------------------------------------------------//
 RequestsQueue::RequestsQueue(size_t maxSize)
