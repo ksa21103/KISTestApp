@@ -40,8 +40,6 @@ void PopAndProcessRequest(Stopper& stopper, RequestsQueue* requestsQueue)
 //----------------------------------------------------------------------------//
 int main()
 {
-    using ThreadsVector = std::vector<std::thread>;
-
     Stopper         stopper;
 
     // Время работы приложения
@@ -58,34 +56,27 @@ int main()
 
     // 1) Организовать в несколько потоков (переменное число, но не менее двух) приём запросов,
     //    для этого класть в одну очередь задания, возвращаемые функцией GetRequest.
-    const size_t kInputThreadsCountMin = 2;
-    const size_t kInputThreadsCount = max(kHardwareThreadsCount / 2, kInputThreadsCountMin);
-    ThreadsVector inputThreads;
-    inputThreads.reserve(kInputThreadsCount);
-    for (size_t index = 0; index < kInputThreadsCount; ++index)
-    {
-        inputThreads.push_back(std::thread([&]() { GetAndPushRequest(stopper, requestsQueue.get()); }));
-    }
-
     // 2) Запустить несколько обрабатывающих запросы потоков (переменное число, но не менее двух),
     //    которые должны обрабатывать поступающие из очереди задания с помощью ProcessRequest.
-    const size_t kOutputThreadsCountMin = 2;
-    const size_t kOutputThreadsCount = max(kHardwareThreadsCount / 2, kOutputThreadsCountMin);
-    ThreadsVector outputThreads;
-    outputThreads.reserve(kInputThreadsCount);
-    for (size_t index = 0; index < kOutputThreadsCount; ++index)
+    const size_t kInputThreadsCountMin = 2;
+    const size_t kThreadsCount = max(kHardwareThreadsCount / 2, kInputThreadsCountMin);
+    std::vector<std::thread> threads;
+    threads.reserve(kThreadsCount * 2);
+    for (size_t index = 0; index < kThreadsCount; ++index)
     {
-        outputThreads.push_back(std::thread([&]() { PopAndProcessRequest(stopper, requestsQueue.get()); }));
+        threads.push_back(std::thread([&]() { GetAndPushRequest(stopper, requestsQueue.get()); }));
+    }
+    for (size_t index = 0; index < kThreadsCount; ++index)
+    {
+        threads.push_back(std::thread([&]() { PopAndProcessRequest(stopper, requestsQueue.get()); }));
     }
 
     // 3) Поработать в течение 30 секунд.
     std::this_thread::sleep_for(kWorkTime);
     stopper.SetStopState();
 
-    // 4) Корректно остановить все потоки. Если остались необработанные задания,
-    //    не обрабатывать их и корректно удалить.
-    std::for_each(inputThreads.begin(),  inputThreads.end(),  std::mem_fn(&std::thread::join));
-    std::for_each(outputThreads.begin(), outputThreads.end(), std::mem_fn(&std::thread::join));
+    // 4) Корректно остановить все потоки. Если остались необработанные задания, не обрабатывать их и корректно удалить.
+    std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));
     requestsQueue.reset();
 
     // 5) Завершить программу.
